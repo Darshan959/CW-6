@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "273851780558",
+    "project_id": "task-management-darsh",
+    "storage_bucket": "task-management-darsh.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:273851780558:android:9a1467b655abe5b64daf9f",
+        "android_client_info": {
+          "package_name": "com.task.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpIUyBbuueYDxem_pkU_ZwhFqC0vdxAcU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
