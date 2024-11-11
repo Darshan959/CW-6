@@ -21,7 +21,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Firebase Auth & Firestore Demo',
+      title: 'Task Management App',
+      theme: ThemeData(
+        primarySwatch: Colors.orange,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
       home: AuthenticationScreen(),
     );
   }
@@ -33,32 +37,45 @@ class AuthenticationScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Authentication'),
+        backgroundColor: Colors.orangeAccent,
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => RegisterEmailSection()),
-                );
-              },
-              child: Text('Register'),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => EmailPasswordForm()),
-                );
-              },
-              child: Text('Sign In'),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => RegisterEmailSection()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  backgroundColor: Colors.orangeAccent,
+                ),
+                child: Text('Register', style: TextStyle(fontSize: 18)),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => EmailPasswordForm()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  backgroundColor: Colors.orangeAccent,
+                ),
+                child: Text('Sign In', style: TextStyle(fontSize: 18)),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -172,15 +189,27 @@ class _RegisterEmailSectionState extends State<RegisterEmailSection> {
             children: <Widget>[
               TextFormField(
                 controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: TextStyle(color: Colors.orangeAccent),
+                  border: OutlineInputBorder(),
+                ),
                 validator: _validateEmail,
+                style: TextStyle(fontSize: 16),
               ),
+              SizedBox(height: 20),
               TextFormField(
                 controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  labelStyle: TextStyle(color: Colors.orangeAccent),
+                  border: OutlineInputBorder(),
+                ),
                 obscureText: true,
                 validator: _validatePassword,
+                style: TextStyle(fontSize: 16),
               ),
+              SizedBox(height: 30),
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 alignment: Alignment.center,
@@ -190,7 +219,14 @@ class _RegisterEmailSectionState extends State<RegisterEmailSection> {
                       _register();
                     }
                   },
-                  child: Text('Register'),
+                  child: Text('Register', style: TextStyle(fontSize: 18)),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    backgroundColor: Colors.orangeAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
                 ),
               ),
               Container(
@@ -279,15 +315,27 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
             children: <Widget>[
               TextFormField(
                 controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: TextStyle(color: Colors.orangeAccent),
+                  border: OutlineInputBorder(),
+                ),
                 validator: _validateEmail,
+                style: TextStyle(fontSize: 16),
               ),
+              SizedBox(height: 20),
               TextFormField(
                 controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  labelStyle: TextStyle(color: Colors.orangeAccent),
+                  border: OutlineInputBorder(),
+                ),
                 obscureText: true,
                 validator: _validatePassword,
+                style: TextStyle(fontSize: 16),
               ),
+              SizedBox(height: 30),
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 alignment: Alignment.center,
@@ -297,7 +345,14 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
                       _signInWithEmailAndPassword();
                     }
                   },
-                  child: Text('Sign In'),
+                  child: Text('Sign In', style: TextStyle(fontSize: 18)),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    backgroundColor: Colors.orangeAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
                 ),
               ),
               Container(
@@ -307,7 +362,7 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
                       ? 'Please Sign In'
                       : _success
                           ? 'Successfully signed in $_userEmail'
-                          : 'Sign in failed',
+                          : 'Sign In failed',
                   style: TextStyle(color: _success ? Colors.green : Colors.red),
                 ),
               ),
@@ -329,9 +384,9 @@ class TaskManagementScreen extends StatefulWidget {
 }
 
 class _TaskManagementScreenState extends State<TaskManagementScreen> {
-  final TextEditingController _taskController = TextEditingController();
-  final TextEditingController _dayController = TextEditingController();
-  final TextEditingController _timeController = TextEditingController();
+  TextEditingController _taskController = TextEditingController();
+  TextEditingController _dayController = TextEditingController();
+  TextEditingController _timeController = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   void _addTask() async {
@@ -368,108 +423,145 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Task Management')),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _taskController,
-              decoration: InputDecoration(labelText: 'Task Name'),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: _taskController,
+                decoration: InputDecoration(
+                  labelText: 'Task Name',
+                  labelStyle: TextStyle(color: Colors.orangeAccent),
+                  border: OutlineInputBorder(),
+                ),
+                style: TextStyle(fontSize: 16),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _dayController,
-              decoration: InputDecoration(labelText: 'Day (e.g. Monday)'),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: _dayController,
+                decoration: InputDecoration(
+                  labelText: 'Day (e.g. Monday)',
+                  labelStyle: TextStyle(color: Colors.orangeAccent),
+                  border: OutlineInputBorder(),
+                ),
+                style: TextStyle(fontSize: 16),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _timeController,
-              decoration:
-                  InputDecoration(labelText: 'Time (e.g. 9 am - 10 am)'),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: _timeController,
+                decoration: InputDecoration(
+                  labelText: 'Time (e.g. 9 am - 10 am)',
+                  labelStyle: TextStyle(color: Colors.orangeAccent),
+                  border: OutlineInputBorder(),
+                ),
+                style: TextStyle(fontSize: 16),
+              ),
             ),
-          ),
-          ElevatedButton(
-            onPressed: _addTask,
-            child: Text('Add Task'),
-          ),
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: _firestore
-                  .collection('tasks')
-                  .where('user', isEqualTo: widget.email)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
-
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(child: Text('No tasks available.'));
-                }
-
-                var tasks = snapshot.data!.docs;
-                Map<String, Map<String, List<DocumentSnapshot>>> groupedTasks =
-                    {};
-
-                for (var task in tasks) {
-                  String day = task['day'];
-                  String time = task['time'];
-
-                  if (!groupedTasks.containsKey(day)) {
-                    groupedTasks[day] = {};
+            ElevatedButton(
+              onPressed: _addTask,
+              child: Text('Add Task'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                backgroundColor: Colors.orangeAccent,
+              ),
+            ),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: _firestore
+                    .collection('tasks')
+                    .where('user', isEqualTo: widget.email)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
                   }
-                  if (!groupedTasks[day]!.containsKey(time)) {
-                    groupedTasks[day]![time] = [];
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Center(child: Text('No tasks available.'));
                   }
-                  groupedTasks[day]![time]!.add(task);
-                }
 
-                return ListView.builder(
-                  itemCount: groupedTasks.keys.length,
-                  itemBuilder: (context, index) {
-                    String day = groupedTasks.keys.elementAt(index);
-                    var timeFrames = groupedTasks[day]!;
+                  var tasks = snapshot.data!.docs;
+                  Map<String, Map<String, List<DocumentSnapshot>>>
+                      groupedTasks = {};
 
-                    return ExpansionTile(
-                      title: Text(day),
-                      children: timeFrames.keys.map((time) {
-                        var timeTasks = timeFrames[time]!;
-                        return ExpansionTile(
-                          title: Text('$time'),
-                          children: timeTasks.map((task) {
-                            bool isCompleted = task['completed'] ?? false;
-                            return ListTile(
-                              title: Text(task['task']),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Checkbox(
-                                    value: isCompleted,
-                                    onChanged: (value) {
-                                      _toggleCompletion(task.id, isCompleted);
-                                    },
+                  for (var task in tasks) {
+                    String day = task['day'];
+                    String time = task['time'];
+
+                    if (!groupedTasks.containsKey(day)) {
+                      groupedTasks[day] = {};
+                    }
+                    if (!groupedTasks[day]!.containsKey(time)) {
+                      groupedTasks[day]![time] = [];
+                    }
+                    groupedTasks[day]![time]!.add(task);
+                  }
+
+                  return ListView.builder(
+                    itemCount: groupedTasks.keys.length,
+                    itemBuilder: (context, index) {
+                      String day = groupedTasks.keys.elementAt(index);
+                      var timeFrames = groupedTasks[day]!;
+
+                      return ExpansionTile(
+                        title: Text(
+                          day,
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        children: timeFrames.keys.map((time) {
+                          var timeTasks = timeFrames[time]!;
+                          return ExpansionTile(
+                            title: Text(
+                              time,
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w600),
+                            ),
+                            children: timeTasks.map((task) {
+                              bool isCompleted = task['completed'] ?? false;
+                              return Card(
+                                margin: EdgeInsets.symmetric(vertical: 8),
+                                elevation: 4,
+                                color: isCompleted ? Colors.green[100] : null,
+                                child: ListTile(
+                                  title: Text(task['task'],
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w500)),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Checkbox(
+                                        value: isCompleted,
+                                        onChanged: (value) {
+                                          _toggleCompletion(
+                                              task.id, isCompleted);
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.delete),
+                                        onPressed: () => _deleteTask(task.id),
+                                      ),
+                                    ],
                                   ),
-                                  IconButton(
-                                    icon: Icon(Icons.delete),
-                                    onPressed: () => _deleteTask(task.id),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        );
-                      }).toList(),
-                    );
-                  },
-                );
-              },
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        }).toList(),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
