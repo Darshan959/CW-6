@@ -1,125 +1,476 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firebase_options.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: FirebaseOptions(
+      appId: "1:273851780558:android:9a1467b655abe5b64daf9f",
+      projectId: "task-management-darsh",
+      apiKey: 'AIzaSyCpIUyBbuueYDxem_pkU_ZwhFqC0vdxAcU',
+      messagingSenderId: 'task-management-darsh',
+    ),
+  );
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'Firebase Auth & Firestore Demo',
+      home: AuthenticationScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class AuthenticationScreen extends StatelessWidget {
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Authentication'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => RegisterEmailSection()),
+                );
+              },
+              child: Text('Register'),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => EmailPasswordForm()),
+                );
+              },
+              child: Text('Sign In'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class AuthService {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  void _incrementCounter() {
+  Future<String?> registerWithEmailAndPassword(
+      String email, String password) async {
+    try {
+      UserCredential result = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      User? user = result.user;
+      return user?.email;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<String?> signInWithEmailAndPassword(
+      String email, String password) async {
+    try {
+      UserCredential result = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      User? user = result.user;
+      return user?.email;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> signOut() async {
+    await _auth.signOut();
+  }
+
+  User? getCurrentUser() {
+    return _auth.currentUser;
+  }
+}
+
+class RegisterEmailSection extends StatefulWidget {
+  RegisterEmailSection({Key? key}) : super(key: key);
+
+  @override
+  _RegisterEmailSectionState createState() => _RegisterEmailSectionState();
+}
+
+class _RegisterEmailSectionState extends State<RegisterEmailSection> {
+  final AuthService _authService = AuthService();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _success = false;
+  bool _initialState = true;
+  String? _userEmail;
+
+  String? _validateEmail(String? email) {
+    if (email == null || email.isEmpty) {
+      return 'Please enter an email';
+    } else if (!email.endsWith('@gsu.com')) {
+      return 'Email must end with @gsu.com';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? password) {
+    if (password == null || password.isEmpty) {
+      return 'Please enter a password';
+    } else if (password.length < 6) {
+      return 'Password should be at least 6 characters long';
+    }
+    return null;
+  }
+
+  void _register() async {
+    String? email = await _authService.registerWithEmailAndPassword(
+      _emailController.text,
+      _passwordController.text,
+    );
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _success = email != null;
+      _userEmail = email;
+      _initialState = false;
+    });
+
+    if (_success) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => TaskManagementScreen(email: _userEmail!)),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Register')),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(labelText: 'Email'),
+                validator: _validateEmail,
+              ),
+              TextFormField(
+                controller: _passwordController,
+                decoration: InputDecoration(labelText: 'Password'),
+                obscureText: true,
+                validator: _validatePassword,
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                alignment: Alignment.center,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _register();
+                    }
+                  },
+                  child: Text('Register'),
+                ),
+              ),
+              Container(
+                alignment: Alignment.center,
+                child: Text(
+                  _initialState
+                      ? 'Please Register'
+                      : _success
+                          ? 'Successfully registered $_userEmail'
+                          : 'Registration failed',
+                  style: TextStyle(color: _success ? Colors.green : Colors.red),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class EmailPasswordForm extends StatefulWidget {
+  EmailPasswordForm({Key? key}) : super(key: key);
+
+  @override
+  _EmailPasswordFormState createState() => _EmailPasswordFormState();
+}
+
+class _EmailPasswordFormState extends State<EmailPasswordForm> {
+  final AuthService _authService = AuthService();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _success = false;
+  bool _initialState = true;
+  String _userEmail = '';
+
+  String? _validateEmail(String? email) {
+    if (email == null || email.isEmpty) {
+      return 'Please enter an email';
+    } else if (!email.endsWith('@gsu.com')) {
+      return 'Email must end with @gsu.com';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? password) {
+    if (password == null || password.isEmpty) {
+      return 'Please enter a password';
+    } else if (password.length < 6) {
+      return 'Password should be at least 6 characters long';
+    }
+    return null;
+  }
+
+  void _signInWithEmailAndPassword() async {
+    String? email = await _authService.signInWithEmailAndPassword(
+      _emailController.text,
+      _passwordController.text,
+    );
+    setState(() {
+      _success = email != null;
+      _userEmail = email ?? '';
+      _initialState = false;
+    });
+
+    if (_success) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => TaskManagementScreen(email: _userEmail)),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Sign In')),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(labelText: 'Email'),
+                validator: _validateEmail,
+              ),
+              TextFormField(
+                controller: _passwordController,
+                decoration: InputDecoration(labelText: 'Password'),
+                obscureText: true,
+                validator: _validatePassword,
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                alignment: Alignment.center,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _signInWithEmailAndPassword();
+                    }
+                  },
+                  child: Text('Sign In'),
+                ),
+              ),
+              Container(
+                alignment: Alignment.center,
+                child: Text(
+                  _initialState
+                      ? 'Please Sign In'
+                      : _success
+                          ? 'Successfully signed in $_userEmail'
+                          : 'Sign in failed',
+                  style: TextStyle(color: _success ? Colors.green : Colors.red),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class TaskManagementScreen extends StatefulWidget {
+  final String email;
+
+  TaskManagementScreen({Key? key, required this.email}) : super(key: key);
+
+  @override
+  _TaskManagementScreenState createState() => _TaskManagementScreenState();
+}
+
+class _TaskManagementScreenState extends State<TaskManagementScreen> {
+  final TextEditingController _taskController = TextEditingController();
+  final TextEditingController _dayController = TextEditingController();
+  final TextEditingController _timeController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  void _addTask() async {
+    if (_taskController.text.isEmpty ||
+        _dayController.text.isEmpty ||
+        _timeController.text.isEmpty) {
+      return;
+    }
+
+    await _firestore.collection('tasks').add({
+      'task': _taskController.text,
+      'user': widget.email,
+      'completed': false,
+      'day': _dayController.text,
+      'time': _timeController.text,
+    });
+
+    _taskController.clear();
+    _dayController.clear();
+    _timeController.clear();
+  }
+
+  void _deleteTask(String taskId) async {
+    await _firestore.collection('tasks').doc(taskId).delete();
+  }
+
+  void _toggleCompletion(String taskId, bool currentStatus) async {
+    await _firestore.collection('tasks').doc(taskId).update({
+      'completed': !currentStatus,
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+      appBar: AppBar(title: Text('Task Management')),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _taskController,
+              decoration: InputDecoration(labelText: 'Task Name'),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _dayController,
+              decoration: InputDecoration(labelText: 'Day (e.g. Monday)'),
             ),
-          ],
-        ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _timeController,
+              decoration:
+                  InputDecoration(labelText: 'Time (e.g. 9 am - 10 am)'),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: _addTask,
+            child: Text('Add Task'),
+          ),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _firestore
+                  .collection('tasks')
+                  .where('user', isEqualTo: widget.email)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(child: Text('No tasks available.'));
+                }
+
+                var tasks = snapshot.data!.docs;
+                Map<String, Map<String, List<DocumentSnapshot>>> groupedTasks =
+                    {};
+
+                for (var task in tasks) {
+                  String day = task['day'];
+                  String time = task['time'];
+
+                  if (!groupedTasks.containsKey(day)) {
+                    groupedTasks[day] = {};
+                  }
+                  if (!groupedTasks[day]!.containsKey(time)) {
+                    groupedTasks[day]![time] = [];
+                  }
+                  groupedTasks[day]![time]!.add(task);
+                }
+
+                return ListView.builder(
+                  itemCount: groupedTasks.keys.length,
+                  itemBuilder: (context, index) {
+                    String day = groupedTasks.keys.elementAt(index);
+                    var timeFrames = groupedTasks[day]!;
+
+                    return ExpansionTile(
+                      title: Text(day),
+                      children: timeFrames.keys.map((time) {
+                        var timeTasks = timeFrames[time]!;
+                        return ExpansionTile(
+                          title: Text('$time'),
+                          children: timeTasks.map((task) {
+                            bool isCompleted = task['completed'] ?? false;
+                            return ListTile(
+                              title: Text(task['task']),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Checkbox(
+                                    value: isCompleted,
+                                    onChanged: (value) {
+                                      _toggleCompletion(task.id, isCompleted);
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete),
+                                    onPressed: () => _deleteTask(task.id),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      }).toList(),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
